@@ -1,0 +1,7 @@
+- name: Make sure Xorg is installed
+  apt:
+    name:
+      - xserver-xorg
+      - xinit
+    state: present
+  become: yes

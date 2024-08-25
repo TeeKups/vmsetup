@@ -1,0 +1,102 @@
+- name: Create user
+  user:
+    name: "{{ user }}"
+    groups:
+      - sudo
+    append: True
+    shell: /usr/bin/bash
+    create_home: yes
+    generate_ssh_key: yes
+    ssh_key_file: .ssh/id_ed25519
+    ssh_key_type: ed25519
+    password: "{{ user | password_hash('sha512') }}"
+
+- name: Force user to change password on next login
+  shell: passwd --expire {{ user }}
+  become: yes
+
+- name: Set startwm.sh script content
+  copy:
+    content: |
+      export STARTUP=$(which dwm)
+
+      [ -f $HOME/.xinitrc ] && . $HOME/.xinitrc
+      [ -f $HOME/.xsession ] && . $HOME/.xsession
+      [ -f $HOME/.xsessionrc ] && . $HOME/.xsessionrc
+
+      exec /etc/xrdp/startwm.sh
+    dest: /home/{{ user }}/startwm.sh
+    mode: '750'
+    owner: "{{ user }}"
+    group: "{{ user }}"
+
+- name: Install ricing programs
+  apt:
+    name:
+      - picom
+      - feh
+      - nsxiv
+    state: present
+  become: yes
+
+- name: Ensure user has permissions for Packer directory
+  file: 
+    path: /home/{{ user }}/.local/share/nvim/site/pack/packer/start/packer.nvim
+    recurse: True
+    owner: "{{ user }}"
+    group: "{{ user }}"
+    mode: '750'
+    state: directory
+
+- name: Download Packer
+  git:
+    repo: https://github.com/wbthomason/packer.nvim
+    depth: 1
+    dest: /home/{{ user }}/.local/share/nvim/site/pack/packer/start/packer.nvim
+    clone: True
+    force: yes
+  become: yes
+  become_user: "{{ user }}"
+
+- name: Download neovim configuration
+  git:
+    repo: https://github.com/TeeKups/vim-config.git
+    dest: /home/{{ user }}/.config/nvim
+    clone: True
+  become: yes
+  become_user: "{{ user }}"
+
+- name: Ensure configuration directories exist
+  file:
+    path: /home/{{ user }}/{{ item }}
+    state: directory
+    owner: "{{ user }}"
+    group: "{{ user }}"
+    mode: '750'
+  with_items:
+    - .config
+    - .config/kitty
+
+- name: Template files in home
+  template:
+    src: templates/{{ item }}
+    dest: /home/{{ user }}/{{ item }}
+    mode: '640'
+    owner: "{{ user }}"
+    group: "{{ user }}"
+  with_items:
+    - .bashrc
+    - .aliases
+    - .bash_aliases
+    - .bashrc
+    - .xsession
+    - .config/kitty/kitty.conf
+
+- name: Copy wallpaper
+  copy:
+    src: templates/.config/wallpaper.jpeg
+    dest: /home/{{ user }}/.config/wallpaper.jpeg
+    owner: "{{ user }}"
+    group: "{{ user }}"
+    mode: '640'
+    force: yes

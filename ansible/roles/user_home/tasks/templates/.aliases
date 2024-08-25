@@ -1,0 +1,6 @@
+alias l='ls --color -lh'
+alias ll='ls --color -lah'
+alias la='ls --color -lah'
+
+alias apt='sudo apt'
+alias dpkg='sudo dpkg'

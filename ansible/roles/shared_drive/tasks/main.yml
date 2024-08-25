@@ -1,0 +1,36 @@
+#mount --mkdir -t cifs $1 $2 -o iocharset=utf8,rw,gid=$samba_gid,file_mode=0775,dir_mode=0774" > /usr/sbin/mount-samba-share
+
+- name: Ensure mount point exists
+  file:
+    mode: '775'
+    path: /mnt/VM_Shared
+    state: directory
+    group: samba
+  become: True
+
+- name: Ensure Samba credentials file exists
+  file:
+    mode: '700'
+    path: /etc/jarbs
+    state: directory
+    owner: root
+    group: root
+  become: True
+
+- name: Ensure Samba credentials are in credentials file
+  copy:
+    content: |
+      username=samba
+      password=samba
+    mode: '600'
+    owner: root
+    group: root
+    dest: /etc/jarbs/samba_credentials
+
+- name: Ensure VM_Shared is in fstab
+  lineinfile:
+    line: //{{ host_ip }}/VM_Shared  /mnt/VM_Shared  cifs  nofail,credentials=/etc/jarbs/samba_credentials,gid=samba,iocharset=utf8,rw,file_mode=0775,dir_mode=0774  0 0
+    state: present
+    insertafter: True
+    path: /etc/fstab
+  become: True

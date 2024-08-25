@@ -1,0 +1,45 @@
+- name: Install devtools
+  apt:
+    name:
+      - git
+      - python-is-python3
+      - build-essential
+      - curl
+    state: present
+  become: true
+
+- name: Check if neovim exists
+  stat:
+    path: /opt/nvim/nvim
+  register: neovim
+  become: true
+
+- name: Ensure /opt/nvim exists
+  file:
+    mode: '775'
+    path: /opt/nvim
+    state: directory
+  become: true
+
+- name: Download neovim
+  get_url:
+    url: https://github.com/neovim/neovim/releases/latest/download/nvim.appimage
+    dest: /opt/nvim/nvim
+    mode: '775'
+  when: not neovim.stat.exists
+  become: true
+
+- name: Ensure neovim has correct permissions
+  file:
+    mode: '775'
+    path: /opt/nvim/nvim
+    state: file
+  become: true
+
+- name: Ensure neovim is in PATH
+  lineinfile:
+    line: export PATH="$PATH:/opt/nvim"
+    state: present
+    insertafter: true
+    path: /etc/profile
+  become: true

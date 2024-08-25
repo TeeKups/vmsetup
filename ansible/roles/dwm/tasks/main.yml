@@ -1,0 +1,81 @@
+- name: Install requirements
+  apt:
+    name:
+      - kitty
+      - libx11-dev
+      - libxinerama-dev
+      - libxft-dev
+      - libxcb-res0
+    state: present
+
+- name: Clean git working directory
+  file:
+    path: /etc/jarbs/suckless
+    mode: '775'
+    state: "{{ item }}"
+    group: sudo
+  with_items:
+    - absent
+    - directory
+  become: yes
+
+- name: Create directory for dmenu
+  file:
+    state: directory
+    mode: '775'
+    group: sudo
+    path: /etc/jarbs/suckless/dmenu
+
+- name: Clone dmenu
+  git:
+    repo: https://github.com/TeeKups/dmenu
+    dest: /etc/jarbs/suckless/dmenu
+    clone: True
+
+- name: Build dmenu
+  make:
+    make: /usr/bin/make
+    chdir: /etc/jarbs/suckless/dmenu
+    
+- name: Install dmenu
+  make:
+    make: /usr/bin/make
+    chdir: /etc/jarbs/suckless/dmenu
+    target: install
+  become: yes
+
+- name: Clone dwmblocks
+  git:
+    repo: https://github.com/TeeKups/dwmblocks
+    dest: /etc/jarbs/suckless/dwmblocks
+    clone: True
+
+- name: Build dwmblocks
+  make:
+    make: /usr/bin/make
+    chdir: /etc/jarbs/suckless/dwmblocks
+    
+- name: Install dwmblocks
+  make:
+    make: /usr/bin/make
+    chdir: /etc/jarbs/suckless/dwmblocks
+    target: install
+  become: yes
+
+- name: Clone dwm
+  git:
+    repo: https://github.com/TeeKups/dwm
+    dest: /etc/jarbs/suckless/dwm
+    clone: True
+
+- name: Build dwm
+  make:
+    make: /usr/bin/make
+    chdir: /etc/jarbs/suckless/dwm
+    
+- name: Install dwm
+  make:
+    make: /usr/bin/make
+    chdir: /etc/jarbs/suckless/dwm
+    target: install
+  become: yes

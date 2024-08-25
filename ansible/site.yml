@@ -1,0 +1,10 @@
+---
+- name: Ins
+  hosts: localhost
+  roles:
+    - tools
+    - xorg
+    - shared_drive
+    - user_home
+    - dwm
+    #- keyboard_config
